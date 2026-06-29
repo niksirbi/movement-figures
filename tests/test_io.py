@@ -29,3 +29,12 @@ def test_save_figure_creates_missing_dir(tmp_path):
     ax.plot([0, 1], [0, 1])
     save_figure(fig, "demo", output_dir=target)
     assert (target / "demo.pdf").exists()
+
+
+def test_save_figure_is_deterministic(tmp_path):
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    first = save_figure(fig, "d", output_dir=tmp_path / "a")
+    second = save_figure(fig, "d", output_dir=tmp_path / "b")
+    for p1, p2 in zip(first, second):
+        assert p1.read_bytes() == p2.read_bytes(), f"{p1.name} not deterministic"
