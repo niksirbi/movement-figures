@@ -1,7 +1,9 @@
 # Quarto / build artifacts
 _site/
-.quarto/
+_freeze/
+/.quarto/
 .jupyter_cache/
+**/*.quarto_ipynb
 
 # Python
 .venv/
@@ -15,5 +17,17 @@ __pycache__/
 # Python packaging artifacts
 *.egg-info/
 
-/.quarto/
-**/*.quarto_ipynb
+# Secrets / local env
+.env
+.envrc
+
+# Python build / tooling caches
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
