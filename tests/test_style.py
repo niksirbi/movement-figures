@@ -1,7 +1,14 @@
 import matplotlib.pyplot as plt
 import pytest
+from matplotlib.colors import to_hex
 
-from movement_figures import AVAILABLE_MEDIA, FIGSIZES, PALETTE, apply_style
+from movement_figures import (
+    AVAILABLE_MEDIA,
+    FIGSIZES,
+    PALETTE,
+    SET2,
+    apply_style,
+)
 
 
 def test_available_media():
@@ -15,7 +22,24 @@ def test_apply_style_manuscript_fontsize():
 
 def test_apply_style_poster_fontsize():
     apply_style("poster")
-    assert plt.rcParams["font.size"] == 18
+    assert plt.rcParams["font.size"] == 24
+
+
+def test_apply_style_color_cycle_matches_set2():
+    apply_style("poster")
+    cycle = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+    assert [to_hex(c) for c in cycle] == [to_hex(c) for c in SET2]
+
+
+def test_palette_keys():
+    assert set(PALETTE) == {
+        "primary",
+        "secondary",
+        "accent",
+        "muted",
+        "highlight",
+        "ink",
+    }
 
 
 def test_apply_style_keeps_base_params():

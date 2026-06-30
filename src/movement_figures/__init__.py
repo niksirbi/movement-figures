@@ -5,6 +5,7 @@ from movement_figures.style import (
     AVAILABLE_MEDIA,
     FIGSIZES,
     PALETTE,
+    SET2,
     apply_style,
 )
 
@@ -12,6 +13,7 @@ __all__ = [
     "AVAILABLE_MEDIA",
     "FIGSIZES",
     "PALETTE",
+    "SET2",
     "apply_style",
     "save_figure",
 ]

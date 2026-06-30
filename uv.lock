@@ -1987,6 +1987,7 @@ dependencies = [
     { name = "nbclient" },
     { name = "nbformat" },
     { name = "numpy" },
+    { name = "seaborn" },
 ]
 
 [package.dev-dependencies]
@@ -2005,6 +2006,7 @@ requires-dist = [
     { name = "nbclient" },
     { name = "nbformat" },
     { name = "numpy" },
+    { name = "seaborn" },
 ]
 
 [package.metadata.requires-dev]
