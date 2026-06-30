@@ -14,20 +14,20 @@ _active_medium: str = "manuscript"
 # ColorBrewer Set2 — movement's brand categorical palette (matches the base
 # axes.prop_cycle in movement-base.mplstyle).
 SET2: tuple[str, ...] = (
-    "#66c2a5",
-    "#fc8d62",
-    "#8da0cb",
-    "#e78ac3",
-    "#a6d854",
-    "#ffd92f",
-    "#e5c494",
-    "#b3b3b3",
+    "#66c2a5",  # teal
+    "#fc8d62",  # orange
+    "#8da0cb",  # purple
+    "#e78ac3",  # pink
+    "#a6d854",  # green
+    "#ffd92f",  # yellow
+    "#e5c494",  # tan
+    "#b3b3b3",  # grey
 )
 
 # Semantic colors drawn from the cohesive Set2 / Dark2 / Pastel2 family.
 PALETTE: dict[str, str] = {
     "primary": "#66c2a5",  # Set2 teal
-    "secondary": "#fc8d62",  # Set2 orange
+    "secondary": "#8da0cb",  # Set2 purple
     "accent": "#e7298a",  # Dark2 magenta (vivid)
     "muted": "#b3b3b3",  # Set2 grey
     "highlight": "#f4cae4",  # Pastel2 pink (light marks on dark)

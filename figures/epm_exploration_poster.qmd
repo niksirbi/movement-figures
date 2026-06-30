@@ -1,0 +1,260 @@
+---
+title: "EPM exploration (poster)"
+---
+
+A five-panel poster figure for the elevated plus maze (EPM) dataset: a
+raw-vs-clean position trace (row 1), centroid trajectory and occupancy
+heatmap side-by-side (row 2), and ROI time-fractions overlaid on the maze
+frame alongside a head-direction polar histogram (row 3).
+
+## Imports and style
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sleap_io as sio
+import xarray as xr
+
+from movement import sample_data
+from movement.filtering import (
+    filter_by_confidence,
+    interpolate_over_time,
+    rolling_filter,
+)
+from movement.kinematics import compute_forward_vector_angle
+from movement.plots import plot_centroid_trajectory, plot_occupancy
+from movement.roi import compute_region_occupancy, load_rois
+
+from movement_figures import (
+    PALETTE,
+    SET2,
+    apply_style,
+    data_dir,
+    figure_size,
+    move_colorbar_to_divider,
+    reserve_colorbar_space,
+    save_figure,
+)
+
+apply_style("poster")
+```
+
+## Load and prepare data
+
+The EPM dataset ships with `movement`'s sample data.  We apply
+a three-step cleaning pipeline
+(confidence filter, rolling median, linear gap interpolation)
+and keep both the raw and clean positions so we can compare them in the first panel.
+
+We also compute the time fraction spent in each ROI and the head direction angle
+for the clean positions, which will be visualized in the last figure row.
+
+```{python}
+# Dataset and background frame.
+ds = sample_data.fetch_dataset(
+    "DLC_single-mouse_EPM.predictions.h5", with_video=True
+)
+frame = plt.imread(ds.frame_path)  # 1300 x 1028 px maze image for heatmap/ROI panels
+frame_h, frame_w = frame.shape[:2]
+
+# Video frame at the end of TRAJ_WINDOW as the trajectory background.
+video = sio.load_video(ds.video_path)
+traj_end_sec = 250
+traj_frame = video[int(traj_end_sec * ds.fps)]
+
+# Cleaning pipeline.
+pos_conf = filter_by_confidence(ds.position, ds.confidence, threshold=0.99)
+pos_smooth = rolling_filter(pos_conf, window=9, statistic="median", min_periods=3)
+pos_clean = interpolate_over_time(pos_smooth, method="linear", max_gap=5)
+
+# Stack raw and clean for the trace panel.
+positions = xr.concat([ds.position, pos_clean], dim="data")
+positions.coords["data"] = ["raw", "clean"]
+
+# Regions of interest.
+rois = load_rois(data_dir() / "EPM_rois.geojson")
+
+# Time fraction per ROI (mouse considered "in" a region only when both
+# the centre and tailbase keypoints are inside it simultaneously).
+roi_occ = compute_region_occupancy(pos_clean, rois)
+mouse_in_roi = roi_occ.sel(
+    keypoint=["centre", "tailbase"],
+    individual="individual_0",
+).all(dim="keypoint")
+
+pct_time_in_roi = (
+    mouse_in_roi.sum(dim="time") / mouse_in_roi.sizes["time"] * 100
+)
+
+# Head direction angle (radians, clockwise from positive x-axis).
+head_angle = compute_forward_vector_angle(
+    pos_clean.sel(individual="individual_0"),
+    left_keypoint="left_ear",
+    right_keypoint="right_ear",
+    reference_vector=(1, 0),
+    camera_view="top_down",
+    in_degrees=False,
+)
+```
+
+## Build the figure
+
+```{python}
+TRACE_WINDOW = slice(240, 300)   # (used for the raw-vs-clean trace panel)
+TRAJ_WINDOW = slice(traj_end_sec - 10, traj_end_sec)  # (used for the trajectory panel)
+HEAD_ANGLE_WINDOW = slice(150, 300)  # (used for the head direction panel)
+# Occupancy heatmap and ROI time-fraction panels use the full ~10-min dataset.
+
+# Occupancy histogram bins (30 px cells covering the full frame).
+BIN_PIX = 30
+bins = [
+    np.arange(0, frame_w + BIN_PIX, BIN_PIX),
+    np.arange(0, frame_h + BIN_PIX, BIN_PIX),
+]
+
+roi_colors = [
+    PALETTE["primary"] if roi.name.startswith("open")
+    else PALETTE["accent"] for roi in rois
+]
+```
+
+```{python}
+fig = plt.figure(figsize=figure_size("double", height=14))
+gs = fig.add_gridspec(
+    3, 2,
+    height_ratios=[2, 5, 5],
+    hspace=0.5,
+    wspace=0.3,
+    left=0.1, right=0.95, top=0.95, bottom=0.05,
+)
+
+ax_trace = fig.add_subplot(gs[0, :])           # row 0 -- full width
+ax_traj  = fig.add_subplot(gs[1, 0])           # row 1 left
+ax_heat  = fig.add_subplot(gs[1, 1])           # row 1 right
+ax_roi   = fig.add_subplot(gs[2, 0])           # row 2 left
+ax_polar = fig.add_subplot(gs[2, 1], projection="polar")  # row 2 right
+
+# ------------------------------------------------------------------ #
+# Row 0: raw vs clean snout y-position                                #
+# ------------------------------------------------------------------ #
+pos_sel = positions.sel(
+    keypoint="snout",
+    individual="individual_0",
+    space="y",
+    time=TRACE_WINDOW,
+)
+pos_sel.sel(data="raw").plot.line(
+    ax=ax_trace, color=PALETTE["primary"], alpha=1.0,
+    label="Raw snout position",
+)
+pos_sel.sel(data="clean").plot.line(
+    ax=ax_trace, color=PALETTE["accent"], alpha=0.7,
+    label="Clean (after dropping outliers and smoothing)",
+)
+ax_trace.set_xlim(float(pos_sel.time.min()), float(pos_sel.time.max()))
+ax_trace.set_title("")
+ax_trace.set_xlabel("time (s)")
+ax_trace.set_ylabel("y position (px)")
+# Anchor the legend on top of the panel (where the title would normally go) so it doesn't overlap the data.
+ax_trace.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), frameon=True, framealpha=0.6, ncols=2)
+
+# ------------------------------------------------------------------ #
+# Row 1 left: centroid trajectory                                     #
+# ------------------------------------------------------------------ #
+ax_traj.imshow(traj_frame.mean(axis=2), cmap="gray")
+plot_centroid_trajectory(
+    pos_clean.sel(time=TRAJ_WINDOW),
+    individual="individual_0",
+    keypoints=["centre", "tailbase", "left_ear", "right_ear"],
+    ax=ax_traj,
+    alpha=0.8,
+    cmap="viridis",
+)
+move_colorbar_to_divider(ax_traj, "time (s)")
+ax_traj.set_xlim(0, frame_w)
+ax_traj.set_ylim(frame_h, 0)
+ax_traj.set_title("Centroid trajectory")
+ax_traj.axis("off")
+
+# ------------------------------------------------------------------ #
+# Row 1 right: occupancy heatmap                                      #
+# ------------------------------------------------------------------ #
+ax_heat.imshow(frame.mean(axis=2), cmap="gray")
+_, ax_heat, _ = plot_occupancy(
+    da=pos_clean,
+    ax=ax_heat,
+    alpha=0.8,
+    bins=bins,
+    cmin=10,
+    norm="log",
+    cmap="turbo",
+)
+move_colorbar_to_divider(ax_heat, "# frames")
+ax_heat.set_xlim(0, frame_w)
+ax_heat.set_ylim(frame_h, 0)
+ax_heat.set_title("Occupancy heatmap")
+ax_heat.axis("off")
+
+# ------------------------------------------------------------------ #
+# Row 2 left: time in ROIs                                            #
+# ------------------------------------------------------------------ #
+ax_roi.imshow(frame.mean(axis=2), cmap="gray")
+for i, roi in enumerate(rois):
+    roi.plot(
+        ax=ax_roi,
+        edgecolor=roi_colors[i],
+        facecolor="none",
+    )
+    cx, cy = roi.region.centroid.x, roi.region.centroid.y
+    ax_roi.text(
+        cx, cy,
+        f"{float(pct_time_in_roi[i]):.0f}%",
+        color=roi_colors[i],
+        ha="center",
+        va="center",
+        fontsize="small",
+    )
+ax_roi.set_xlim(0, frame_w)
+ax_roi.set_ylim(frame_h, 0)
+ax_roi.set_title("Time spent in ROIs")
+ax_roi.axis("off")
+
+# Reserve an invisible colorbar-sized strip so this panel's image box matches
+# the colorbar-bearing trajectory panel directly above it.
+reserve_colorbar_space(ax_roi)
+
+# ------------------------------------------------------------------ #
+# Row 2 right: head direction polar histogram                         #
+# ------------------------------------------------------------------ #
+BIN_WIDTH_DEG = 15
+n_bins = int(360 / BIN_WIDTH_DEG)
+
+head_angle.sel(time=HEAD_ANGLE_WINDOW).plot.hist(
+    bins=np.linspace(-np.pi, np.pi, n_bins + 1),
+    ax=ax_polar,
+    density=True,
+    color=PALETTE["secondary"],
+    edgecolor="white",
+    linewidth=1.0,
+)
+ax_polar.set_theta_direction(-1)   # clockwise
+ax_polar.set_theta_offset(0)       # 0 deg at the right
+ax_polar.set_xlabel("")
+ax_polar.set_yticklabels([])  # auto radial gridlines, hide density labels
+
+tick_angles = np.linspace(0, 2 * np.pi, 9)[:-1]
+tick_labels_deg = list(range(0, 181, 45)) + list(range(0, -180, -45))[-1:0:-1]
+ax_polar.set_xticks(tick_angles)
+ax_polar.set_xticklabels([f"{t}\N{DEGREE SIGN}" for t in tick_labels_deg])
+ax_polar.set_title("Head direction", pad=45);
+
+```
+
+## Save the figure
+
+```{python}
+fig_name = "epm_exploration_poster"
+save_paths = save_figure(fig, fig_name, formats=("pdf", "svg"))
+print(f"Saved '{fig_name}' figure to {save_paths[0].parent}.")
+```

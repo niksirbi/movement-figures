@@ -101,6 +101,6 @@ fig.subplots_adjust(
 
 ```{python}
 fig_name = "pupil_tracking_poster"
-save_paths = save_figure(fig, fig_name)
+save_paths = save_figure(fig, fig_name, formats=("pdf", "svg"))
 print(f"Saved '{fig_name}' figure to {save_paths[0].parent}.")
 ```
