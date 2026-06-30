@@ -1,0 +1,66 @@
+---
+title: "Pupil tracking (poster)"
+---
+
+A two-panel poster figure for the `black` (dark surround) rotating-mouse
+eye-tracking dataset: the four tracked keypoints (plus the pupil centroid) on an
+example video frame, and the pupil centroid's horizontal velocity over time.
+
+```{python}
+import matplotlib.pyplot as plt
+import sleap_io as sio
+
+from movement import sample_data
+from movement.kinematics import compute_velocity
+
+from movement_figures import FIGSIZES, PALETTE, apply_style, save_figure
+
+apply_style("poster")
+
+# Load the black (dark surround) eye-tracking dataset together with its video.
+ds = sample_data.fetch_dataset(
+    "DLC_rotating-mouse_eye-tracking_stim-black.predictions.h5",
+    with_video=True,
+)
+frame0 = sio.load_video(ds.video_path)[0]
+
+fig, (ax_frame, ax_vel) = plt.subplots(
+    1, 2, figsize=FIGSIZES["poster"]["double"]
+)
+
+# Panel 1: example frame with the tracked keypoints and the pupil centroid.
+pos0 = ds.position.isel(time=0).squeeze()
+ax_frame.imshow(frame0, cmap="gray")
+for kp in ds.position.keypoint.values:
+    p = pos0.sel(keypoint=kp)
+    ax_frame.scatter(p.sel(space="x"), p.sel(space="y"), s=120, label=kp)
+centroid0 = pos0.sel(keypoint=["pupil-L", "pupil-R"]).mean("keypoint")
+ax_frame.scatter(
+    centroid0.sel(space="x"),
+    centroid0.sel(space="y"),
+    marker="x",
+    s=160,
+    color=PALETTE["accent"],
+    label="centroid",
+)
+ax_frame.invert_yaxis()  # the dataset was captured flipped
+ax_frame.set_xticks([])
+ax_frame.set_yticks([])
+ax_frame.set_title("Tracked keypoints")
+ax_frame.legend(loc="upper right")
+
+# Panel 2: x-velocity of the normalized pupil centroid over time.
+eye_mid = ds.position.sel(keypoint=["eye-L", "eye-R"]).mean("keypoint")
+pos_norm = ds.position - eye_mid
+pupil_c = pos_norm.sel(keypoint=["pupil-L", "pupil-R"]).mean("keypoint")
+velocity = compute_velocity(pupil_c)
+vx = velocity.sel(space="x").squeeze().sel(time=slice(10, 25))
+vx.plot.line(ax=ax_vel)
+ax_vel.set_title("Pupil centroid x-velocity")
+ax_vel.set_xlabel("time (s)")
+ax_vel.set_ylabel("velocity (px/s)")
+
+fig.tight_layout()
+save_figure(fig, "pupil_tracking_poster")
+fig
+```
