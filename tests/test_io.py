@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from movement_figures import save_figure
+from movement_figures import data_dir, save_figure
 from movement_figures.io import _default_output_dir
 
 
@@ -50,6 +50,18 @@ def test_default_output_dir_is_project_root_outputs():
     d = _default_output_dir()
     assert d.name == "outputs"
     assert (d.parent / "pyproject.toml").is_file()
+
+
+def test_data_dir_is_project_root_data():
+    d = data_dir()
+    assert d.name == "data"
+    assert (d.parent / "pyproject.toml").is_file()
+
+
+def test_data_dir_independent_of_cwd(monkeypatch):
+    root = data_dir().parent  # project root (has pyproject.toml)
+    monkeypatch.chdir(root / "figures")
+    assert data_dir() == root / "data"
 
 
 def test_default_output_dir_independent_of_cwd(monkeypatch):

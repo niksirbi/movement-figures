@@ -20,19 +20,37 @@ _TIMESTAMP_SUPPRESS: dict[str, dict[str, None]] = {
 _SVG_HASHSALT = "movement-figures"
 
 
+def _find_project_root() -> Path:
+    """Return the project root by walking up to the nearest ``pyproject.toml``.
+
+    Falls back to the current working directory if no marker is found.
+    """
+    here = Path.cwd().resolve()
+    for parent in (here, *here.parents):
+        if (parent / "pyproject.toml").is_file():
+            return parent
+    return here
+
+
 def _default_output_dir() -> Path:
-    """Return ``<project-root>/outputs``, found by walking up to ``pyproject.toml``.
+    """Return ``<project-root>/outputs``.
 
     This keeps ``save_figure`` writing to the same place whether it runs under
     ``quarto render`` (cwd = project root) or interactively from a figure's own
     directory (cwd = ``figures/``). Falls back to ``./outputs`` if no marker is
     found.
     """
-    here = Path.cwd().resolve()
-    for parent in (here, *here.parents):
-        if (parent / "pyproject.toml").is_file():
-            return parent / "outputs"
-    return here / "outputs"
+    return _find_project_root() / "outputs"
+
+
+def data_dir() -> Path:
+    """Return ``<project-root>/data``.
+
+    Mirrors :func:`_default_output_dir`: works correctly whether called from
+    the project root (``quarto render``) or from inside a sub-directory such
+    as ``figures/`` (interactive execution).
+    """
+    return _find_project_root() / "data"
 
 
 @contextmanager

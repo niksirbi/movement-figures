@@ -48,5 +48,5 @@ select = ["E", "F", "I", "UP", "B"]
 "tests/conftest.py" = ["E402"]
 
 [tool.codespell]
-skip = '.git,*.svg,*.pdf,uv.lock'
+skip = '.git,*.svg,*.pdf,uv.lock,data/'
 check-hidden = true
