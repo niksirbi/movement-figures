@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
 from movement_figures import save_figure
+from movement_figures.io import _default_output_dir
 
 
 def test_save_figure_writes_pdf_and_svg(tmp_path):
@@ -38,3 +39,16 @@ def test_save_figure_is_deterministic(tmp_path):
     second = save_figure(fig, "d", output_dir=tmp_path / "b")
     for p1, p2 in zip(first, second, strict=True):
         assert p1.read_bytes() == p2.read_bytes(), f"{p1.name} not deterministic"
+
+
+def test_default_output_dir_is_project_root_outputs():
+    d = _default_output_dir()
+    assert d.name == "outputs"
+    assert (d.parent / "pyproject.toml").is_file()
+
+
+def test_default_output_dir_independent_of_cwd(monkeypatch):
+    root = _default_output_dir().parent  # project root (has pyproject.toml)
+    # Simulate interactive execution from inside the figures/ directory.
+    monkeypatch.chdir(root / "figures")
+    assert _default_output_dir() == root / "outputs"
