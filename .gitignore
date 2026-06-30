@@ -31,3 +31,6 @@ dist/
 .coverage
 coverage.xml
 htmlcov/
+
+# Superpowers scratch (SDD ledger, brainstorm companion)
+.superpowers/
