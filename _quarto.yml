@@ -13,6 +13,7 @@ website:
 format:
   html:
     theme: cosmo
+    css: custom.css
     code-fold: true
     toc: true
 
