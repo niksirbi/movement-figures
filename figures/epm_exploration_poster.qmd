@@ -27,11 +27,10 @@ from movement.plots import plot_centroid_trajectory, plot_occupancy
 from movement.roi import compute_region_occupancy, load_rois
 
 from movement_figures import (
-    PALETTE,
-    SET2,
     apply_style,
     data_dir,
     figure_size,
+    get_color,
     move_colorbar_to_divider,
     reserve_colorbar_space,
     save_figure,
@@ -114,8 +113,8 @@ bins = [
 ]
 
 roi_colors = [
-    PALETTE["primary"] if roi.name.startswith("open")
-    else PALETTE["accent"] for roi in rois
+    get_color("teal", "Dark2") if roi.name.startswith("open")
+    else get_color("pink", "Dark2") for roi in rois
 ]
 ```
 
@@ -145,11 +144,11 @@ pos_sel = positions.sel(
     time=TRACE_WINDOW,
 )
 pos_sel.sel(data="raw").plot.line(
-    ax=ax_trace, color=PALETTE["primary"], alpha=1.0,
+    ax=ax_trace, color=get_color("orange", "Pastel2"), alpha=1.0,
     label="Raw snout position",
 )
 pos_sel.sel(data="clean").plot.line(
-    ax=ax_trace, color=PALETTE["accent"], alpha=1.0,
+    ax=ax_trace, color=get_color("teal", "Set2"), alpha=1.0,
     label="Clean (after dropping outliers and smoothing)",
 )
 ax_trace.set_xlim(float(pos_sel.time.min()), float(pos_sel.time.max()))
@@ -236,7 +235,7 @@ head_angle.sel(time=HEAD_ANGLE_WINDOW).plot.hist(
     bins=np.linspace(-np.pi, np.pi, n_bins + 1),
     ax=ax_polar,
     density=True,
-    color=PALETTE["secondary"],
+    color=get_color("teal", "Set2"),
     edgecolor="white",
     linewidth=1.0,
 )

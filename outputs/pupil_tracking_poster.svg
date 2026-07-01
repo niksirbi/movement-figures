@@ -73,7 +73,7 @@ z
    </g>
    <g id="PathCollection_2">
     <defs>
-     <path id="m5e641d71b5" d="M 0 5.477226 
+     <path id="m6c93a00db3" d="M 0 5.477226 
 C 1.452577 5.477226 2.845856 4.900111 3.872983 3.872983 
 C 4.900111 2.845856 5.477226 1.452577 5.477226 0 
 C 5.477226 -1.452577 4.900111 -2.845856 3.872983 -3.872983 
@@ -83,25 +83,15 @@ C -4.900111 -2.845856 -5.477226 -1.452577 -5.477226 0
 C -5.477226 1.452577 -4.900111 2.845856 -3.872983 3.872983 
 C -2.845856 4.900111 -1.452577 5.477226 0 5.477226 
 z
-" style="stroke: #e7298a; stroke-width: 2"/>
+" style="stroke: #fc8d62; stroke-width: 2"/>
     </defs>
     <g clip-path="url(#pde4aa4ff36)">
-     <use xlink:href="#m5e641d71b5" x="151.903074" y="129.385005" style="fill: #e7298a; stroke: #e7298a; stroke-width: 2"/>
+     <use xlink:href="#m6c93a00db3" x="151.903074" y="129.385005" style="fill: #fc8d62; stroke: #fc8d62; stroke-width: 2"/>
     </g>
-   </g>
-   <g id="patch_3">
-    <path d="M 40 210 
-L 40 37.2 
-" style="fill: none; stroke: #262626; stroke-width: 2.5; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 40 210 
-L 270.4 210 
-" style="fill: none; stroke: #262626; stroke-width: 2.5; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
   </g>
   <g id="axes_2">
-   <g id="patch_5">
+   <g id="patch_3">
     <path d="M 400 210 
 L 998.4 210 
 L 998.4 37.2 
@@ -823,14 +813,14 @@ L 996.405333 126.591986
 L 997.402667 128.274124 
 L 998.4 123.622803 
 L 998.4 123.622803 
-" clip-path="url(#pc46febc261)" style="fill: none; stroke: #e7298a; stroke-width: 3; stroke-linecap: round"/>
+" clip-path="url(#pc46febc261)" style="fill: none; stroke: #fc8d62; stroke-width: 3; stroke-linecap: round"/>
    </g>
-   <g id="patch_6">
+   <g id="patch_4">
     <path d="M 400 210 
 L 400 37.2 
 " style="fill: none; stroke: #262626; stroke-width: 2.5; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
-   <g id="patch_7">
+   <g id="patch_5">
     <path d="M 400 210 
 L 998.4 210 
 " style="fill: none; stroke: #262626; stroke-width: 2.5; stroke-linejoin: miter; stroke-linecap: square"/>

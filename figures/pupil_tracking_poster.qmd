@@ -16,7 +16,7 @@ import sleap_io as sio
 from movement import sample_data
 from movement.kinematics import compute_velocity
 
-from movement_figures import PALETTE, apply_style, figure_size, save_figure
+from movement_figures import apply_style, figure_size, get_color, save_figure
 
 apply_style("poster")
 ```
@@ -67,33 +67,33 @@ h_tracked = ax_frame.scatter(
     pos0.sel(space="x"),
     pos0.sel(space="y"),
     s=120,
-    color=PALETTE["primary"],
+    color=get_color("teal", "Set2"),
 )
 h_centroid = ax_frame.scatter(
     centroid0.sel(space="x"),
     centroid0.sel(space="y"),
     s=120,
-    color=PALETTE["accent"],
+    color=get_color("orange", "Set2"),
 )
 ax_frame.invert_yaxis()  # the dataset was captured flipped
-# Hide ticks and spines but keep the axis labels: axis("off") would hide the
-# labels too, so instead clear ticks and drop the spines manually.
+
+# Hide ticks and spines but keep the axis labels
 ax_frame.set_xticks([])
 ax_frame.set_yticks([])
 for spine in ax_frame.spines.values():
     spine.set_visible(False)
+
 ax_frame.set_xlabel("x")
 ax_frame.set_ylabel("y")
 
 # Panel 2 (~3/4 width): x-velocity of the normalized pupil centroid over time.
-vx.plot.line(ax=ax_vel, color=PALETTE["accent"], label="Pupil centroid x velocity")
+vx.plot.line(
+    ax=ax_vel, color=get_color("orange", "Set2"), label="Pupil centroid x velocity"
+)
 ax_vel.set_xlim(float(vx.time.min()), float(vx.time.max()))
 ax_vel.set_title("Pupil centroid x velocity")
 ax_vel.set_xlabel("time (s)")
-ax_vel.set_ylabel("velocity (px/s)")
-
-# Layout tweaks
-sns.despine(fig=fig)
+ax_vel.set_ylabel("velocity (px/s)");
 ```
 
 ## Save the figure
