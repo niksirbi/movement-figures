@@ -1,14 +1,18 @@
+from typing import get_args
+
 import matplotlib.pyplot as plt
 import pytest
+import seaborn as sns
 from matplotlib.colors import to_hex
 
 from movement_figures import (
     AVAILABLE_MEDIA,
-    PALETTE,
-    SET2,
     WIDTHS,
+    Hue,
+    Palette,
     apply_style,
     figure_size,
+    get_color,
 )
 
 
@@ -29,18 +33,48 @@ def test_apply_style_poster_fontsize():
 def test_apply_style_color_cycle_matches_set2():
     apply_style("poster")
     cycle = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-    assert [to_hex(c) for c in cycle] == [to_hex(c) for c in SET2]
+    set2 = sns.color_palette("Set2", 8).as_hex()
+    assert [to_hex(c) for c in cycle] == [to_hex(c) for c in set2]
 
 
-def test_palette_keys():
-    assert set(PALETTE) == {
-        "primary",
-        "secondary",
-        "accent",
-        "muted",
-        "highlight",
-        "ink",
-    }
+def test_hue_and_palette_members():
+    assert get_args(Hue) == (
+        "teal",
+        "orange",
+        "purple",
+        "pink",
+        "green",
+        "yellow",
+        "brown",
+        "gray",
+    )
+    assert get_args(Palette) == ("Set2", "Dark2", "Pastel2")
+
+
+def test_get_color_defaults_to_set2():
+    assert get_color("teal") == "#66c2a5"
+
+
+@pytest.mark.parametrize(
+    ("hue_name", "palette", "expected"),
+    [
+        ("teal", "Set2", "#66c2a5"),
+        ("orange", "Set2", "#fc8d62"),
+        ("gray", "Set2", "#b3b3b3"),
+        ("teal", "Dark2", "#1b9e77"),
+        ("pink", "Dark2", "#e7298a"),
+        ("pink", "Pastel2", "#f4cae4"),
+    ],
+)
+def test_get_color_returns_expected_hex(hue_name, palette, expected):
+    assert get_color(hue_name, palette) == expected
+
+
+def test_get_color_covers_every_hue():
+    for palette in get_args(Palette):
+        expected = sns.color_palette(palette, len(get_args(Hue))).as_hex()
+        for i, hue_name in enumerate(get_args(Hue)):
+            assert get_color(hue_name, palette) == expected[i]
 
 
 def test_apply_style_keeps_base_params():
@@ -58,8 +92,7 @@ def test_apply_style_rejects_unknown_medium():
         apply_style("billboard")
 
 
-def test_palette_and_widths_shape():
-    assert isinstance(PALETTE, dict) and len(PALETTE) >= 1
+def test_widths_shape():
     assert set(WIDTHS) == set(AVAILABLE_MEDIA)
     for spans in WIDTHS.values():
         assert set(spans) == {"single", "double"}

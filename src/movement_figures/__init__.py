@@ -7,21 +7,23 @@ from movement_figures.layout import (
 )
 from movement_figures.style import (
     AVAILABLE_MEDIA,
-    PALETTE,
-    SET2,
     WIDTHS,
+    Hue,
+    Palette,
     apply_style,
     figure_size,
+    get_color,
 )
 
 __all__ = [
     "AVAILABLE_MEDIA",
-    "PALETTE",
-    "SET2",
+    "Hue",
+    "Palette",
     "WIDTHS",
     "apply_style",
     "data_dir",
     "figure_size",
+    "get_color",
     "move_colorbar_to_divider",
     "reserve_colorbar_space",
     "save_figure",

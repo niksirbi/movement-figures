@@ -1,8 +1,10 @@
 """Layered, medium-aware matplotlib styling."""
 
 from importlib.resources import files
+from typing import Literal, get_args
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 AVAILABLE_MEDIA: tuple[str, ...] = ("manuscript", "poster", "presentation")
 
@@ -11,28 +13,25 @@ _STYLE_DIR = files("movement_figures") / "styles"
 # The medium of the most recent ``apply_style`` call; used by ``figure_size``.
 _active_medium: str = "manuscript"
 
-# ColorBrewer Set2 — movement's brand categorical palette (matches the base
-# axes.prop_cycle in movement-base.mplstyle).
-SET2: tuple[str, ...] = (
-    "#66c2a5",  # teal
-    "#fc8d62",  # orange
-    "#8da0cb",  # purple
-    "#e78ac3",  # pink
-    "#a6d854",  # green
-    "#ffd92f",  # yellow
-    "#e5c494",  # tan
-    "#b3b3b3",  # grey
-)
+# Qualitative (categorical) palettes from ColorBrewer used in movement's brand identity.
+Palette = Literal["Set2", "Dark2", "Pastel2"]
 
-# Semantic colors drawn from the cohesive Set2 / Dark2 / Pastel2 family.
-PALETTE: dict[str, str] = {
-    "primary": "#66c2a5",  # Set2 teal
-    "secondary": "#8da0cb",  # Set2 purple
-    "accent": "#e7298a",  # Dark2 magenta (vivid)
-    "muted": "#b3b3b3",  # Set2 grey
-    "highlight": "#f4cae4",  # Pastel2 pink (light marks on dark)
-    "ink": "#666666",  # Dark2 grey (dark neutral)
+# Assign names to the 8 hues used in all the above palettes
+Hue = Literal["teal", "orange", "purple", "pink", "green", "yellow", "brown", "gray"]
+
+# Precompute each palette's hex colors (in hue order) and each hue's index
+# Both are derived from the Literals above.
+_PALETTES: dict[Palette, list[str]] = {
+    name: sns.color_palette(name, len(get_args(Hue))).as_hex()
+    for name in get_args(Palette)
 }
+_HUE_INDEX: dict[Hue, int] = {hue: i for i, hue in enumerate(get_args(Hue))}
+
+
+def get_color(hue_name: Hue, palette: Palette = "Set2") -> str:
+    """Return the hex color for a named hue from a given palette."""
+    return _PALETTES[palette][_HUE_INDEX[hue_name]]
+
 
 # Standardized figure widths (inches) per medium and column span. Heights are
 # chosen per figure via figure_size(..., height=...).
